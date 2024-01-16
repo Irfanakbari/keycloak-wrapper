@@ -11,17 +11,21 @@ class KeycloakConfig {
   factory KeycloakConfig(
           {required String bundleIdentifier,
           required String clientId,
-          required String frontendUrl,
+            required String clientSecret,
+            required String frontendUrl,
           required String realm}) =>
       instance
         ..bundleIdentifier = bundleIdentifier
         ..clientId = clientId
+        ..clientSecret = clientSecret
         ..frontendUrl = frontendUrl
         ..realm = realm;
 
   String? _bundleIdentifier;
 
   String? _clientId;
+
+  String? _clientSecret;
 
   String? _frontendUrl;
 
@@ -32,6 +36,9 @@ class KeycloakConfig {
 
   /// The alphanumeric ID string that is used in OIDC requests and in the Keycloak database to identify the client.
   String get clientId => _clientId ?? '';
+
+  /// The client secret string that is used in OIDC requests and in the Keycloak database to identify the client.
+  String get clientSecret => _clientSecret ?? '';
 
   /// The fixed base URL for frontend requests.
   String get frontendUrl => _frontendUrl ?? '';
@@ -44,6 +51,12 @@ class KeycloakConfig {
 
   /// The callback URI after the user has been successfully authorized and granted an access token.
   String get redirectUri => '$_bundleIdentifier://login-callback';
+
+  set clientSecret(String? clientSecret) {
+    if (clientSecret == null) return;
+    _clientSecret = clientSecret;
+    _secureStorage.write(key: _clientSecretKey, value: clientSecret);
+  }
 
   set bundleIdentifier(String? value) {
     if (value == null) return;
@@ -73,6 +86,7 @@ class KeycloakConfig {
   Future<void> initialize() async {
     bundleIdentifier = await _secureStorage.read(key: _bundleIdentifierKey);
     clientId = await _secureStorage.read(key: _clientIdKey);
+    clientSecret = await _secureStorage.read(key: _clientSecretKey);
     frontendUrl = await _secureStorage.read(key: _frontendUrlKey);
     realm = await _secureStorage.read(key: _realmKey);
   }

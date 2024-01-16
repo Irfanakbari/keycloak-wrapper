@@ -58,6 +58,7 @@ class KeycloakWrapper {
           tokenResponse = await _appAuth.token(TokenRequest(
               KeycloakConfig.instance.clientId,
               KeycloakConfig.instance.redirectUri,
+              clientSecret: KeycloakConfig.instance.clientSecret,
               issuer: KeycloakConfig.instance.issuer,
               refreshToken: securedRefreshToken,
               allowInsecureConnections: true));
