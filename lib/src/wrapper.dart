@@ -110,6 +110,45 @@ class KeycloakWrapper {
     }
   }
 
+  // Refresh Token
+  Future<bool> renewToken() async {
+    try {
+      final securedRefreshToken =
+      await _secureStorage.read(key: _refreshTokenKey);
+
+      if (securedRefreshToken != null) {
+        await KeycloakConfig.instance.initialize();
+
+        final isConnected = await hasNetwork();
+
+        if (isConnected) {
+          tokenResponse = await _appAuth.token(TokenRequest(
+              KeycloakConfig.instance.clientId,
+              KeycloakConfig.instance.redirectUri,
+              issuer: KeycloakConfig.instance.issuer,
+              clientSecret: KeycloakConfig.instance.clientSecret,
+              refreshToken: securedRefreshToken,
+              allowInsecureConnections: true));
+
+          await _secureStorage.write(
+              key: _refreshTokenKey, value: refreshToken);
+
+          debugPrint(
+              '${tokenResponse.isValid ? 'Valid' : 'Invalid'} refresh token.');
+
+          _streamController.add(tokenResponse.isValid);
+        } else {
+          _streamController.add(true);
+        }
+      }
+      return tokenResponse.isValid;
+    } catch (e, s) {
+      debugPrint('An error occurred during token refresh.');
+      onError(e, s);
+      return false;
+    }
+  }
+
   /// Logs the user out.
   ///
   /// Returns true if logout is successful.
